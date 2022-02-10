@@ -1,0 +1,185 @@
+//define the length of arms
+int L1=840;
+int L2=600;
+//define the first position of sarubobo
+float SarX=600.0;
+float SarY=750.0;
+//declare parameters
+float theta1;
+float theta2;
+float jointX;
+float jointY;
+float tipX;
+float tipY;
+float armstartX=0;
+float armstartY=0;
+int disappear=0;
+int Catch=0;
+int goal=0;
+float d;
+//define the position of pinch
+float a=0;
+float b=300;
+//define the class of raindrops
+float[]dotx=new float[100];
+float[]doty=new float[100];
+
+
+void setup(){
+  //define the size of the window
+  size(1260,960);
+  //define the values of each raindrop
+  for (int i=0;i<dotx.length;i++) {
+    for (int j=0;j<doty.length;j++){
+    dotx[i]=random(0,1920);
+    doty[i]=random(0,1920);
+  }
+  }
+}
+
+
+void draw() {
+//define the background color
+background(255);
+//count the time 
+int timer =millis();
+
+//draw raindrops
+/*
+for (int i=0;i<dotx.length;i++) {
+    for (int j=0;j<doty.length;j++){
+    fill(0,0,200);
+  ellipse(dotx[i],doty[i],20,20);
+    }
+}
+*/
+
+//draw the get box
+fill(200,200,200);
+rect(900,600,360,360);
+
+//draw sarubobo
+if (disappear==0&&Catch==0){
+Sarubobo(SarX,SarY);
+}
+
+//get mouse position
+float mx=mouseX;
+float my=mouseY;
+
+//measure the distance between mouse and get box
+d=dist(mx+60,my+60,1260,960);
+if (d<360){
+  background(0);
+  textSize(70);
+  fill(255);
+  text("Mission Complete!!",width/2-120,height/2);
+  goal+=1;
+}
+
+//draw a robot arm
+//culcurate theta1
+float num=sq(mx)+sq(my)+sq(L1)-sq(L2);
+float den=2*L1*sqrt(sq(mx)+sq(my));
+theta1=acos(num/den)+atan(my/mx);
+//culcurate theta2
+float num2=sq(mx)+sq(my)-sq(L1)-sq(L2);
+float den2=2*L1*L2;
+theta2=acos(num2/den2);
+// draw first arm
+strokeWeight(20);
+jointX=L1*cos(theta1);
+jointY=L1*sin(theta1);
+fill(0);
+line(armstartX,armstartY,jointX,jointY);
+// draw second arm
+tipX=jointX+L2*cos(theta1+theta2);
+tipY=jointY+L2*sin(theta1+theta2);
+line(jointX,jointY,mx,my);
+strokeWeight(1);
+//draw the pinch of the robot arm
+pinch(mx,my);
+//end the demonstration 
+if (timer>15000&&goal==0){
+  background(0);
+  fill(0,255,0);
+  text("Mission Failure.",width/2-120,height/2);
+}
+
+}
+
+//make a function that draws a 'Sarubobo'
+void Sarubobo(float x,float y){
+  pushMatrix();
+  translate(x,y);
+  //head
+  fill(255,0,0);
+  ellipse(0,0,120,120);
+  //upper body
+  fill(0);
+  quad(-30,60,30,60,90,120,-90,120);
+  //downer body
+  triangle(-90,120,90,120,0,210);
+  //left arm
+  fill(255,0,0);
+  triangle(45,75,90,60,75,105);
+  //right arm
+  triangle(-45,75,-90,60,-75,105);
+  //left leg
+  triangle(60,150,90,210,30,180);
+  //right leg
+  triangle(-60,150,-90,210,-30,180);
+  //Sarubobo's hit point
+  fill(0);
+  strokeWeight(5);
+  point(45,45);
+  point(-45,45);
+  strokeWeight(1);
+  popMatrix();
+}
+
+//make a function that draws the pinch
+void pinch(float x,float y){
+  float dis_head=dist(x,y+120,600,750);
+  pushMatrix();
+  translate(x-180,y);
+  textSize(30);
+  //to move the left and right pinch
+    if (key==CODED) {
+      if (keyCode==RIGHT){
+        a+=1;
+        if (a>120){
+          a=120;
+      }
+      }
+      if (keyCode==LEFT){
+        b-=1;
+        if (300-b>120){
+          b=180;
+      }
+      }
+    }
+    //draw the pinch
+      rect(0,0,360,60);
+      rect(a,60,60,120);
+      rect(b,60,60,120);
+
+      //the condition to destroy Sarubobo
+      if (300-b+a>135&&dis_head<30){
+        text("Sarubobo break.....",60,-30);
+        disappear+=1;
+      }
+      //the condition to grab Sarubobo
+      if (300-b+a<135&&300-b+a>120&&dis_head<30){
+        Sarubobo(a+120,120.0);
+        text("Sarubobo catch!!!!!!!",60,-30);
+        Catch=1;
+      }
+      popMatrix();
+      if (Catch==1){
+        pushMatrix();
+        translate(x-180,y);
+        Sarubobo(a+120,120.0);
+        popMatrix();
+      }
+}
